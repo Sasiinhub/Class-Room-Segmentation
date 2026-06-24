@@ -1,0 +1,6 @@
+hiii.. can you analyse this project? and what it does and how to make it useful?
+
+
+
+
+can we make it useful product like all you said . but i need to clear doubts before making any changes.. , 1. we need to enable student profile searchable the teacher can able to search a perticular student details.. 2. are we trained the model? if yes! is it enough?. 3. if we create  a docker file it packs with the dependencies i know, but what about runtime? 4. if runtime makes any truble , why we go with another deployment preparation? without ddocker. 5. the csv upload option feature we need to add.. 6. also we need to show the clusters in a single actual scater plot. that shows all in one actual data difference.. it need to fix under the existing chart.

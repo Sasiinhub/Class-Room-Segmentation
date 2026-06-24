@@ -1,0 +1,31 @@
+#define the stages of our pipeline
+stages: 
+    - test
+    - deploy
+    
+#1. the test stage (runs on every push)
+test_backend:
+    stage: test
+    tags:
+        -fastapi-tester
+    script:
+        - echo "Activating Virtual environment..."
+        - source my_env/bin/activate # Assuemes our venv is named my_env
+        - |
+        # The line below is a comment (ignored by linux)
+        # The line below it is the actual (runs in terminal)
+        pip install --find-links=/home/nemika/git/projects/classroomsegmentation/offline_packages -r requirements.txt
+        # above we removed --no-index in in front of install because we no need to realy only offline packages. the deployment area must need internet and the new packages may be not fit for the existing environment.
+        
+        - pytest	#runs our python tests
+        
+# 2. The Deploy Stage (only runs when we push to 'main or master')
+deploy_production:
+    stage: deploy
+    tags:
+    	- fastapi-tester
+    script:
+        - echo  "Restarting FastApi/uvicorn service.."
+        - sudo systemctl restart uvicorn # restarts our app to apply changes.
+    only:
+     - main

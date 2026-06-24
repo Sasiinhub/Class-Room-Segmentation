@@ -1,0 +1,15 @@
+#Python virtual environment
+venv/
+.env
+
+#local IDE Settings(VS Code / PyCharm)
+.vscode/
+.idea/
+
+#OS Generated files
+.DS_Store
+thumbs.db
+
+#My Special case:
+# if we want to keep the offline_packages on local only, ignore them.
+offline_packages/
