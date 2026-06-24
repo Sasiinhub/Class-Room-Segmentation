@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduCluster Insight | Smart Classroom Analytics</title>
+    <link rel="stylesheet" href="style.css?v=23">
+    <!-- Chart.js for Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar and other content remains -->
+
+        <!-- Modal for Upload (New) -->
+        <div id="uploadModal" class="modal-overlay" style="display: none;">
+            <div class="modal-content glass-panel" style="max-width: 500px;">
+                <span class="close-modal" onclick="closeUploadModal()">&times;</span>
+                <h2>Upload New Snapshot</h2>
+                <p>Add data to a specific Class Batch for trend tracking.</p>
+
+                <div style="display:flex; flex-direction:column; gap:1rem; margin-top:1rem;">
+                    <div>
+                        <label style="color:var(--text-secondary); display:block; margin-bottom:0.5rem;">Batch Name
+                            (e.g. "Class 2024")</label>
+                        <input type="text" id="uploadBatchName" class="search-input" placeholder="Enter Batch Name"
+                            style="width:100%;">
+                    </div>
+
+                    <div>
+                        <label style="color:var(--text-secondary); display:block; margin-bottom:0.5rem;">Snapshot Label
+                            (e.g. "Term 1")</label>
+                        <input type="text" id="uploadLabel" class="search-input" placeholder="Mid-Term, Final, etc."
+                            style="width:100%;">
+                    </div>
+
+                    <div>
+                        <label style="color:var(--text-secondary); display:block; margin-bottom:0.5rem;">CSV
+                            File</label>
+                        <input type="file" id="fileInputModal" accept=".csv" class="search-input"
+                            style="padding-top:0.5rem;">
+                    </div>
+
+                    <button onclick="submitUpload()" class="btn-primary" style="margin-top:1rem;">Upload &
+                        Analyze</button>
+                    <div id="uploadStatus" style="text-align:center; color: var(--accent); white-space: pre-line;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Trend Analysis -->
+        <div id="trendModal" class="modal-overlay" style="display: none;">
+            <div class="modal-content glass-panel" style="width: 90%; max-width: 1000px;">
+                <span class="close-modal" onclick="closeTrendModal()">&times;</span>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2>Batch Trend Forecast</h2>
+                    <select id="trendBatchSelect" class="search-input" style="width:200px;"
+                        onchange="loadTrendData(this.value)">
+                        <option value="">Select Batch...</option>
+                    </select>
+                </div>
+                <p>Longitudinal tracking of Exam & Engagement averages with <strong>AI Prediction</strong>.</p>
+                <div class="modal-chart-container" style="height: 400px;">
+                    <canvas id="trendChartCanvas"></canvas>
+                </div>
+                <div id="trendSummary" style="margin-top:10px; font-size: 0.9rem; color: #ccc;"></div>
+
+                <h4
+                    style="margin-top:1rem; color:var(--text-secondary); border-top:1px solid rgba(255,255,255,0.1); padding-top:0.5rem;">
+                    Included Snapshots</h4>
+                <div id="snapshotList" style="font-size:0.8rem; color:#888; display:flex; gap:10px; flex-wrap:wrap;">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+        <!-- Modal for Bell Chart (REMOVED) -->
+        <!--
+        <div id="bellChartModal" class="modal-overlay" style="display: none;">
+            <div class="modal-content glass-panel">
+                <span class="close-modal" onclick="closeBellChart()">&times;</span>
+                <h2>Mastery Target Map</h2>
+                <p><strong>Goal:</strong> Top-Right Corner (100% Exam, 100% Engagement). <br> Dots represent students.
+                    Color indicates distance from the goal.</p>
+                <div class="modal-chart-container">
+                    <canvas id="bellChartModalCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+        -->
+        <!-- Sidebar / Header -->
+        <header class="sidebar">
+            <div class="logo">
+                <h1>EduCluster</h1>
+                <span class="badgex">AI Powered</span>
+            </div>
+
+            <div class="stats-panel">
+                <h3>Class Overview</h3>
+                <div id="cluster-stats" class="cluster-list">
+                    <!-- Cluster Summaries will go here -->
+                    <div class="loading">Analyzing Data...</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <!-- History Selector -->
+                <div class="search-box" style="margin-bottom: 0.5rem;">
+                    <label
+                        style="color:var(--text-secondary); font-size:0.8rem; margin-bottom:0.2rem; display:block;">Select
+                        Snapshot:</label>
+                    <select id="historySelect" class="search-input" onchange="loadSnapshot(this.value)">
+                        <option value="">Loading history...</option>
+                    </select>
+                </div>
+
+                <!-- View Trend Button -->
+                <button onclick="openTrendModal()" class="btn-secondary"
+                    style="margin-bottom: 0.5rem; text-align:center; display:block; width:100%;">
+                    📈 View Batch Trends
+                </button>
+
+                <!-- Search Box -->
+                <div class="search-box">
+                    <input type="text" id="studentSearch" placeholder="Search by Student ID..." class="search-input">
+                </div>
+
+                <!-- Upload & Refresh -->
+                <button onclick="openUploadModal()" class="btn-primary">Upload New Data (CSV)</button>
+                <!-- legacy hidden input removed -->
+
+                <button onclick="window.location.href='/api/export'" class="btn-secondary"
+                    style="margin-bottom: 0.5rem; border-color: var(--accent); color: var(--accent);">Download Results
+                    (CSV)</button>
+
+                <a href="raw.html" class="btn-secondary"
+                    style="margin-bottom: 0.5rem; text-align:center; display:block; text-decoration:none;">View Raw PCA
+                    Map</a>
+
+                <button onclick="location.reload()" class="btn-secondary">Refresh Analysis</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-view">
+            <!-- Left Column: Charts -->
+            <div class="charts-column">
+                <div class="chart-section glass-panel">
+                    <div class="section-header">
+                        <h2>Student Clusters Map</h2>
+                        <p>AI-generated grouping based on learning behavior.</p>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="clusterChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Learning Distribution Bell Curve (REMOVED) -->
+                <!--
+                <div class="chart-section glass-panel"
+                    style="align-items: center; justify-content: center; min-height: 150px;">
+                    <div class="section-header" style="text-align: center; margin-bottom: 1rem;">
+                        <h2>Class Learning Deviation</h2>
+                        <p>View how the class is distributed.</p>
+                    </div>
+                    <button onclick="openBellChart()" class="btn-primary" style="width: auto; padding: 0.8rem 2rem;">
+                        View Mastery Map
+                    </button>
+                </div>
+                -->
+            </div>
+
+            <!-- Right Column: Student Details -->
+            <div id="detail-panel" class="detail-section glass-panel">
+                <div class="section-header">
+                    <h2>Student Profile</h2>
+                    <p>Select a student to view details.</p>
+                </div>
+                <div id="student-info" class="student-info-grid">
+                    <div class="placeholder-text">Click on a dot in the chart to inspect a student.</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js?v=3"></script>
+</body>
+
+</html>
